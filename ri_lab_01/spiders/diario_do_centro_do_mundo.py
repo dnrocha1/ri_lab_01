@@ -16,11 +16,16 @@ class DiarioDoCentroDoMundoSpider(scrapy.Spider):
         with open('frontier/diariodocentrodomundo.json') as json_file:
                 data = json.load(json_file)
         self.start_urls = list(data.values())
+        # print('*************************************************')
+        # print(self.start_urls)
+        # print('*************************************************')
 
     def parse(self, response):
         #
         # inclua seu código aqui
         #
+        for href in response.css("div.td-block-span4 a::attr(href)"):
+                yield response.follow(href, self.parse_post, meta={'url': response.url})
         page = response.url.split("/")[-2]
         filename = 'quotes-%s.html' % page
         with open(filename, 'wb') as f:
@@ -29,3 +34,17 @@ class DiarioDoCentroDoMundoSpider(scrapy.Spider):
         #
         #
         #
+    def parse_post(self, response):
+        def extract_with_css(query):
+            return response.css(query).get(default='').strip()
+        print('\n')
+        yield {
+            'title': extract_with_css('h1.entry-title::text'),
+            'author': extract_with_css('div.td-author-by + a::text'),
+            'date': extract_with_css('time::text'),
+            'url': response.url,
+            'section': response.meta['url'].split('/')[-2]
+            # 'text': response.css('span.s1::text').getall(default='').strip(),
+            # response.xpath("//p/descendant::text()[not(parent::div/@class='td_block_template_1')]").getall()
+        }
+        print('\n')
