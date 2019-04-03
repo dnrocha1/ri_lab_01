@@ -43,8 +43,9 @@ class DiarioDoCentroDoMundoSpider(scrapy.Spider):
             'author': extract_with_css('div.td-author-by + a::text'),
             'date': extract_with_css('time::text'),
             'url': response.url,
-            'section': response.meta['url'].split('/')[-2]
-            # 'text': response.css('span.s1::text').getall(default='').strip(),
+            'section': response.meta['url'].split('/')[-2],
+            'text': response.xpath('//div[contains(@class, "td-post-content")]//p/text() | \
+                                    //div[contains(@class, "td-post-content")]//p/span/text()').getall()#getall(default='').strip(),
             # response.xpath("//p/descendant::text()[not(parent::div/@class='td_block_template_1')]").getall()
         }
         print('\n')
